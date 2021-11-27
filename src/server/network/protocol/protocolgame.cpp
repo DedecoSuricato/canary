@@ -3332,6 +3332,7 @@ void ProtocolGame::sendCyclopediaCharacterTitles() {
 
 void ProtocolGame::sendTournamentLeaderboard() {
 	NetworkMessage msg;
+	//playermsg.reset();
 	msg.addByte(0xC5);
 	msg.addByte(0);
 	msg.addByte(0x01);
