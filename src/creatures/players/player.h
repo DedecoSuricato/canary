@@ -737,7 +737,6 @@ class Player final : public Creature, public Cylinder {
 		void stopWalk();
 		bool openShopWindow(Npc* npc);
 		bool closeShopWindow(bool sendCloseShopWindow = true);
-		bool updateSaleShopList(const Item* item);
 		bool hasShopItemForSale(uint16_t itemId, uint8_t subType) const;
 
 		void setChaseMode(bool mode);
@@ -1596,12 +1595,14 @@ class Player final : public Creature, public Cylinder {
 
 		void updateRegeneration();
 
-		void setScheduledSaleUpdate(bool scheduled) {
-			scheduledSaleUpdate = scheduled;
+		void addScheduledUpdates(uint32_t flags);
+		bool hasScheduledUpdates(uint32_t flags) const {
+			return (scheduledUpdates & flags);
 		}
 
-		bool getScheduledSaleUpdate() {
-			return scheduledSaleUpdate;
+		void resetScheduledUpdates() {
+			scheduledUpdates = 0;
+			scheduledUpdate = false;
 		}
 
 		bool inPushEvent() {
@@ -2483,6 +2484,7 @@ class Player final : public Creature, public Cylinder {
 		Vocation* vocation = nullptr;
 		RewardChest* rewardChest = nullptr;
 
+		uint32_t scheduledUpdates = 0;
 		uint32_t inventoryWeight = 0;
 		uint32_t capacity = 40000;
 		uint32_t bonusCapacity = 0;
@@ -2586,7 +2588,7 @@ class Player final : public Creature, public Cylinder {
 		bool inventoryAbilities[CONST_SLOT_LAST + 1] = {};
 		bool quickLootFallbackToMainContainer = false;
 		bool logged = false;
-		bool scheduledSaleUpdate = false;
+		bool scheduledUpdate = false;
 		bool inEventMovePush = false;
 		bool supplyStash = false; // Menu option 'stow, stow container ...'
 		bool marketMenu = false; // Menu option 'show in market'
