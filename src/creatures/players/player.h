@@ -2442,6 +2442,9 @@ class Player final : public Creature, public Cylinder {
 		uint64_t lastAttack = 0;
 		uint64_t bankBalance = 0;
 		uint64_t lastQuestlogUpdate = 0;
+		uint64_t actionTaskEvent = 0;
+		uint64_t nextStepEvent = 0;
+		uint64_t walkTaskEvent = 0;
 		uint64_t preyCards = 0;
 		uint64_t taskHuntingPoints = 0;
 		uint32_t bossPoints = 0;
@@ -2493,11 +2496,8 @@ class Player final : public Creature, public Cylinder {
 		uint32_t conditionSuppressions = 0;
 		uint32_t level = 1;
 		uint32_t magLevel = 0;
-		uint32_t actionTaskEvent = 0;
 		uint32_t actionTaskEventPush = 0;
 		uint32_t actionPotionTaskEvent = 0;
-		uint32_t nextStepEvent = 0;
-		uint32_t walkTaskEvent = 0;
 		uint32_t MessageBufferTicks = 0;
 		uint32_t lastIP = 0;
 		uint32_t accountNumber = 0;
