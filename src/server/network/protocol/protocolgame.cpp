@@ -25,7 +25,7 @@
 #include "creatures/players/player.h"
 #include "creatures/players/grouping/familiars.h"
 #include "server/network/protocol/protocolgame.h"
-#include "game/scheduling/scheduler.h"
+#include "game/scheduling/tasks.h"
 #include "creatures/combat/spells.h"
 #include "creatures/players/management/waitlist.h"
 #include "items/weapons/weapons.h"
@@ -415,8 +415,10 @@ void ProtocolGame::login(const std::string &name, uint32_t accountId, OperatingS
 			foundPlayer->disconnect();
 			foundPlayer->isConnecting = true;
 
-			eventConnect = g_scheduler().addEvent(createSchedulerTask(1000, std::bind(&ProtocolGame::connect, getThis(), foundPlayer->getID(), operatingSystem)));
-		} else {
+			eventConnect = g_dispatcher().addEvent(1000, std::bind(&ProtocolGame::connect, getThis(), foundPlayer->getID(), operatingSystem));
+		}
+		else
+		{
 			connect(foundPlayer->getID(), operatingSystem);
 		}
 	}
@@ -685,7 +687,7 @@ void ProtocolGame::parsePacketDead(uint8_t recvbyte) {
 			return;
 		}
 
-		g_scheduler().addEvent(createSchedulerTask(100, std::bind(&ProtocolGame::sendPing, getThis())));
+		g_dispatcher().addEvent(100, std::bind(&ProtocolGame::sendPing, getThis()));
 
 		if (!player->spawn()) {
 			disconnect();
@@ -700,7 +702,7 @@ void ProtocolGame::parsePacketDead(uint8_t recvbyte) {
 
 	if (recvbyte == 0x1D) {
 		// keep the connection alive
-		g_scheduler().addEvent(createSchedulerTask(100, std::bind(&ProtocolGame::sendPingBack, getThis())));
+		g_dispatcher().addEvent(100, std::bind(&ProtocolGame::sendPingBack, getThis()));
 		return;
 	}
 }
@@ -4161,7 +4163,7 @@ void ProtocolGame::updateCoinBalance() {
 	}
 
 	g_dispatcher().addTask(
-		createTask(std::bind([](uint32_t playerId) {
+		std::bind([](uint32_t playerId) {
 			Player* threadPlayer = g_game().getPlayerByID(playerId);
 			if (threadPlayer) {
 				account::Account account;
@@ -4172,8 +4174,7 @@ void ProtocolGame::updateCoinBalance() {
 				threadPlayer->sendCoinBalance();
 			}
 		},
-							 player->getID()))
-	);
+                              player->getID()));
 }
 
 void ProtocolGame::sendMarketLeave() {
@@ -5586,7 +5587,7 @@ void ProtocolGame::sendAddCreature(const Creature* creature, const Position &pos
 	msg.addByte(0x17);
 
 	msg.add<uint32_t>(player->getID());
-	msg.add<uint16_t>(0x32); // beat duration (50)
+	msg.add<uint16_t>(SERVER_BEAT_MILISECONDS);
 
 	msg.addDouble(Creature::speedA, 3);
 	msg.addDouble(Creature::speedB, 3);
