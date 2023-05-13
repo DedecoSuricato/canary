@@ -147,14 +147,23 @@ void ServicePort::open(uint16_t port) {
 	pendingStart = false;
 
 	try {
+		asio::ip::tcp::resolver resolver(io_service);
+		asio::ip::tcp::endpoint endpoint;
+
 		if (g_configManager().getBoolean(BIND_ONLY_GLOBAL_ADDRESS)) {
-			acceptor.reset(new asio::ip::tcp::acceptor(io_service, asio::ip::tcp::endpoint(asio::ip::address(asio::ip::address_v4::from_string(g_configManager().getString(IP))), serverPort)));
+			std::string domain = g_configManager().getString(IP);
+			asio::ip::tcp::resolver::query query(asio::ip::tcp::v4(), domain, "");
+			asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+			endpoint = asio::ip::tcp::endpoint(endpoint_iterator->endpoint().address(), port);
+
+			// Fazendo o log do IP resultante da resolução do nome de domínio.
+			SPDLOG_INFO("Resolved domain {} to IP: {}", domain, endpoint.address().to_string());
 		} else {
-			acceptor.reset(new asio::ip::tcp::acceptor(io_service, asio::ip::tcp::endpoint(asio::ip::address(asio::ip::address_v4(INADDR_ANY)), serverPort)));
+			endpoint = asio::ip::tcp::endpoint(asio::ip::address_v4::any(), port);
 		}
 
+		acceptor.reset(new asio::ip::tcp::acceptor(io_service, endpoint));
 		acceptor->set_option(asio::ip::tcp::no_delay(true));
-
 		accept();
 	} catch (const std::system_error &e) {
 		SPDLOG_WARN("[ServicePort::open] - Error code: {}", e.what());
